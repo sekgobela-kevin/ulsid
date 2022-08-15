@@ -5,7 +5,7 @@ Author: Sekgobela Kevin
 Date: August 2022
 Language: Python 3
 '''
-import typing
+
 
 class UlidError(Exception):
     '''Base class for ulid exceptions'''
@@ -35,32 +35,79 @@ class UnsupportedStudentNumber(StudentNumberError):
         return err_msg.format(student_id=self.student_number)
 
 
-class StudentNumberPartError(StudentNumberError):
-    '''Exceptions regarding parts of student number'''
-    part_name = "Part"
-    
-    def __init__(self, part: str, student_number:int=None) -> None:
-        self.part = part
+class StudentNumberOtherError(StudentNumberError):
+    def __init__(self, other, student_number:int=None) -> None:
+        self.other = other
         super().__init__(student_number)
+
+    def create_message_template(self):
+        return "Error with {other} of student number {student_id}"
 
     def create_error_message(self):
         if self.student_number == None:
             student_number = ""
         else:
             student_number = self.student_number
-        err_msg = "{part_name} {part} of student number " +\
-            "{student_id} is invalid"
+        
+        err_msg = self.create_message_template()
         return err_msg.format(
-            part=self.part, 
+            other=self.other, 
             student_id=student_number, 
-            part_name=self.part_name
         )
+    
+class StudentNumberPartError(StudentNumberOtherError):
+    '''Exceptions regarding parts of student number'''
+    
+    def __init__(self, part: str, student_number:int=None) -> None:
+        super().__init__(part, student_number)
+
+    def create_message_template(self):
+        return "Part {other} of student number {student_id} is invalid"
 
 
 class YearPartError(StudentNumberPartError):
     '''Exception regarding year part of student number'''
-    part_name = "Year part"
+    def create_message_template(self):
+        return "Year part {other} of student number {student_id} is invalid"
 
 class PositionPartError(StudentNumberPartError):
     '''Exception regarding position part of student number'''
-    part_name = "Posetion part"
+    def create_message_template(self):
+        return "Position part {other} of student number {student_id} " +\
+            "is invalid"
+
+
+class YearError(StudentNumberOtherError):
+    '''Errors relating to year of student number'''
+    def __init__(self, year: int, student_number:int=None) -> None:
+        self.year = year
+        super().__init__(year, student_number)
+
+    def create_message_template(self):
+        return "Error with year {other} of student number {student_id}"
+
+class InvalidYearError(YearError):
+    def create_message_template(self):
+        return "Year {other} is invalid for student number"
+
+class UnsupportedYearError(YearError):
+    def create_message_template(self):
+        return "Year {other} is not supported for student number"
+
+
+class PositionError(StudentNumberOtherError):
+    '''Errors relating to position of student number'''
+    def __init__(self, position: int, student_number:int=None) -> None:
+        self.position = position
+        super().__init__(position, student_number)
+
+    def create_message_template(self):
+        return "Error with position {other} of student number {student_id}"
+
+class InvalidPositionError(PositionError):
+    def create_message_template(self):
+        return "Position {other} is invalid for student number"
+
+class UnsupportedPositionError(PositionError):
+    def create_message_template(self):
+        return "Position {other} is not supported for student number"
