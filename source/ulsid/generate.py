@@ -56,7 +56,7 @@ def guess_position(start_pos:int=None, end_pos:int=None, **kwargs):
         err_msg = err_msg.format(end_pos, max_end_pos)
         raise ValueError(err_msg)
     
-    # Uses ranom of start pos and end pos to guess position
+    # Uses start pos and end pos to guess position
     return random.randint(start_pos, end_pos)
 
 def guess_position_part(start_pos:int=None, end_pos:int=None, **kwargs):
@@ -73,13 +73,17 @@ def guess_year(start_year:int=None, end_year:int=None, strict=True):
         end_year = DEFAULT_END_YEAR
 
     if start_year > end_year:
-        err_msg = "End year {} cant be greater than end year {}"
+        err_msg = "Start year {} cant be greater than end year {}"
         raise ValueError(err_msg.format(start_year, end_year))
     
-    if strict and end_year > DEFAULT_END_YEAR:
-        err_msg = "End year {} cant be greater than default end year " +\
-            "{} when strict is enabled."
-        raise ValueError(err_msg.format(end_year, DEFAULT_END_YEAR))
+    if strict:
+        if start_year < DEFAULT_START_YEAR:
+            err_msg = "Start year {} cant be less than default " +\
+                "end year {} when strict is enabled."
+        if end_year > DEFAULT_END_YEAR:
+            err_msg = "End year {} cant be greater than default " +\
+                "end year {} when strict is enabled."
+            raise ValueError(err_msg.format(end_year, DEFAULT_END_YEAR))
 
     return random.randint(start_year, end_year)
 
@@ -101,7 +105,6 @@ def guess_student_number(
     position_part = guess_position_part(start_pos, end_pos, **kwargs)
     return year_part + position_part
     
-
 
 if __name__ == "__main__":
     student_number = 202264623
