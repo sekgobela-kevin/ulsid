@@ -87,7 +87,7 @@ def year_part_valid(year_part: str, strict=True):
     if strict and len(year_part) == 2:
         # related to year_to_year_part()
         year_part = "19" + year_part
-    return year_valid(int(year_part))
+    return year_valid(int(year_part), strict)
 
 
 def position_valid(position: int, **kwargs):
@@ -129,7 +129,7 @@ def year_part_to_year(year_part: str, strict=True):
 def year_to_year_part(year: int, strict=True):
     # Convert year integer to its year part
     year_str = str(year)
-    if year_valid(year):
+    if year_valid(year, strict):
         if strict and year_str.startswith("19"):
             return year_str[2:]
         return year_str

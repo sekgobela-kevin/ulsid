@@ -111,3 +111,7 @@ class InvalidPositionError(PositionError):
 class UnsupportedPositionError(PositionError):
     def create_message_template(self):
         return "Position {other} is not supported for student number"
+
+
+class NavalNotInstalledError(UlidError):
+    pass

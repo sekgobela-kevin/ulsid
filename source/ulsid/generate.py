@@ -200,18 +200,28 @@ def create_position_parts_regex(
     exception = year_position_exception(start_pos, end_pos, **kwargs)
     raise_exception(exception)
 
-    # Calculates length of digits to use in regex pattern
-    min_position_length = len(str(start_pos))
-    max_position_length = len(str(end_pos))
-    max_leading_zeros = max_position_length - min_position_length
+    # calculates maximum position length
+    year_capacity = analyse.get_capacity_from_kwargs(**kwargs)
+    year_first_position = analyse.get_first_position_from_kwargs(**kwargs)
+    max_position_length = analyse.calculate_position_length(
+        year_capacity, year_first_position
+    )
+
+    min_leading_zeros = max_position_length - len(str(end_pos))
+    max_leading_zeros = max_position_length - len(str(start_pos))
     # Creates pattern for matching leading zeros
     # Matched leading zeros wont always mean position part is valid.
     if max_leading_zeros != 0:
-        leading_zeros_pattern = "0{" + ",{}".format(max_leading_zeros) + "}"
+        leading_zeros_pattern = "(0{" + "{},{}".format(min_leading_zeros,
+            max_leading_zeros) + "})"
     else:
         leading_zeros_pattern = ""
     # Creates pattern for matching position integer
-    position_pattern = "[{}-{}]".format(start_pos, end_pos)
+    if len(str(start_pos)) == len(str(end_pos)):
+        position_pattern = "\d{" + str(len(str(start_pos))) + "}"
+    else:
+        position_pattern = "(\d{" + str(len(str(start_pos))) + "," +\
+            str(len(str(end_pos))) + "})"
     # Combines the to patterns to create pattern for position part.
     return leading_zeros_pattern + position_pattern
 
@@ -233,24 +243,11 @@ def create_year_part_regex(
     start_year_part = analyse.year_to_year_part(start_year, strict)
     end_year_part = analyse.year_to_year_part(end_year, strict)
 
-    # Handles case were its strict
-    # Strict may result in year part having 2 digits(Year 2000 problem)
-    # Its worth it to ensure regex pattern take that into account.
-    if strict and len(start_year_part) == 2 and len(end_year_part) != 2:
-        # 2000 is the year in which student numbers changed.
-        # Related to 'Year 2000 problem' or "Millennium Bug"
-        pattern = "([{start_year_part}-{before_y2k_year_part}]" +\
-            "|[{y2k_year}-{end_year_part}])"
-        pattern = pattern.format(
-            start_year_part = start_year_part, 
-            before_y2k_year_part = analyse.year_to_year_part(
-                analyse.BEFORE_Y2K_YEAR),
-            y2k_year_part = analyse.year_to_year_part(analyse.Y2K_YEAR),
-            y2k_year = analyse.Y2K_YEAR,
-            end_year_part = end_year_part)
+    if len(start_year_part) == len(end_year_part):
+        return "(\d{" + str(len(start_year_part)) + "})"
     else:
-        pattern = "[{}-{}]".format(start_year_part, end_year_part) 
-    return pattern
+        return "(\d{" + str(len(start_year_part)) + "}|" + "\d{" +\
+            str(len(end_year_part)) + "})"
 
 def create_regex_pattern(    
     start_year:int=None, 
@@ -272,5 +269,5 @@ def create_regex_pattern(
 
 if __name__ == "__main__":
     student_number = 202264623
-    print(guess_student_number(strict=False, start_pos=10, end_pos=100))
-    print(create_regex_pattern(strict=False, start_pos=10, end_pos=100))
+    print(guess_student_number(strict=False, start_pos=10, end_pos=1000))
+    print(create_regex_pattern(strict=False, start_year=2015, end_year=20201))
