@@ -6,12 +6,40 @@ Date: August 2022
 Language: Python 3
 '''
 import typing
+import time
+
 from . import exceptions
 
+
+
+UL_START_YEAR = 1959 # Year UL started to operate
+MIN_SUPPORTED_YEAR = 1000 # Minimum supported year
+
+# 'Year 2000 bug' or 'Year 2000 problem'
+# The year caused year parts of student numbers to change.
+Y2K_YEAR = 2000
+BEFORE_Y2K_YEAR = Y2K_YEAR - 1
+
+# Year UL started to operate
+DEFAULT_START_YEAR = UL_START_YEAR
+# End year is based on current year plus 1
+DEFAULT_END_YEAR = time.gmtime(time.time()).tm_year + 1
 
 DEFAULT_YEAR_FIRST_POS = 0 # First position likely 0
 DEFAULT_YEAR_CAPACITY = 100000 # Max capacity for a each year
 
+
+#################################################################
+# Functions starting here are to be used by main module funtions
+#################################################################
+
+def get_capacity_from_kwargs(**kwargs):
+    # Gets year capacity from arguments else gets default one
+    return kwargs.get("year_capacity", DEFAULT_YEAR_CAPACITY)
+
+def get_first_position_from_kwargs(**kwargs):
+    # Gets first position from arguments else gets default one
+    return kwargs.get("year_first_position", DEFAULT_YEAR_FIRST_POS)
 
 def caculate_last_postion(
     year_first_position: typing.Union[int, None] = None, 
@@ -25,6 +53,13 @@ def caculate_last_postion(
         year_capacity = DEFAULT_YEAR_CAPACITY
     return (year_capacity + year_first_position) - 1
 
+def calculate_year_capacity(year_first_position, year_last_position):
+    # Calculates year capacity from year first and last position
+    # year_last_position = (year_capacity + year_first_position) - 1
+    # -year_capacity = (year_first_position - year_last_position) - 1
+    # year_capacity = ((year_first_position - year_last_position) - 1)/-1
+    return ((year_first_position - year_last_position) - 1)/-1
+
 def calculate_position_length(
     year_first_position: typing.Union[int, None] = None, 
     year_capacity: typing.Union[int, None] = None):
@@ -34,27 +69,31 @@ def calculate_position_length(
     )
     return len(str(last_position))
 
+#################################################################
+#                  END for helpers functions
+#################################################################
+
+
+def year_valid(year: int, strict=True):
+    # Checks if year is valid or supported
+    min_year_satisfied = year >= MIN_SUPPORTED_YEAR
+    if not strict:
+        return min_year_satisfied
+    else:
+        return min_year_satisfied and year <= DEFAULT_END_YEAR
 
 def year_part_valid(year_part: str, strict=True):
     # Checks if year part is valid
     if strict and len(year_part) == 2:
-        return True
-    elif len(year_part) >= 4:
-        return True
-    else:
-        return False
-
-def year_valid(year: int):
-    # Checks if year is valid
-    return len(str(year)) >= 4
+        # related to year_to_year_part()
+        year_part = "19" + year_part
+    return year_valid(int(year_part))
 
 
 def position_valid(position: int, **kwargs):
     # Check if position is valid
-    first_position = kwargs.get("year_first_position", 
-        DEFAULT_YEAR_FIRST_POS)
-    capacity = kwargs.get("year_capacity", 
-        DEFAULT_YEAR_CAPACITY)
+    first_position = get_first_position_from_kwargs(**kwargs)
+    capacity = get_capacity_from_kwargs(**kwargs)
     last_postion = caculate_last_postion(first_position, capacity)
     return position >= first_position and position <= last_postion
     
