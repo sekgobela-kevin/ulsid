@@ -47,9 +47,11 @@ def get_end_pos_from_kwargs(**kwargs):
     if end_pos != None:
         return end_pos
     else:
-        start_pos = get_start_pos_from_kwargs(**kwargs)
+        # Calculates end position from year first pos and capacity.
+        # Realise that year first position was used than start_pos
+        first_position = analyse.get_first_position_from_kwargs(**kwargs)
         year_capacity = analyse.get_capacity_from_kwargs(**kwargs)
-        return calculate_end_position(start_pos, year_capacity)
+        return calculate_end_position(first_position, year_capacity)
 
 def year_range_exception(start_year:int=None, end_year:int=None, 
     strict=True):
@@ -124,18 +126,13 @@ def raise_exception(exception:Exception):
 def guess_position(start_pos:int=None, end_pos:int=None, **kwargs):
     # Guesses position to be used with student number
 
-    # Gets year capacity from arguments else gets default one
-    year_capacity = analyse.get_capacity_from_kwargs(**kwargs)
-    # Gets first position from arguments else gets default one
-    first_position = analyse.get_first_position_from_kwargs(**kwargs)
-
     # Updates start_pos if not provided on argumnets
     if start_pos == None:
-        start_pos = calculate_start_position(first_position)
+        start_pos = analyse.get_first_position_from_kwargs(**kwargs)
     
     # Updates end_pos if not provided on argumnets
     if end_pos == None:
-        end_pos = analyse.caculate_last_postion(start_pos, year_capacity)
+        end_pos = get_end_pos_from_kwargs(**kwargs)
 
     # Raises exception if any
     exception = year_position_exception(start_pos, end_pos, **kwargs)
@@ -181,6 +178,110 @@ def guess_student_number(
     position_part = guess_position_part(start_pos, end_pos, **kwargs)
     return year_part + position_part
 
+
+def common_leading_substring(__str:str, __str2:str):
+    # Returns substring which both strings starts with.
+    startswith = ""
+    for i in range(len(__str)):
+        try:
+            if __str[i] == __str2[i]:
+                startswith += __str[i]
+            else:
+                break
+        except IndexError:
+            break
+    return startswith
+
+
+def extract_remaing_substring(__str:str, leading_substring:str):
+    if __str.startswith(leading_substring):
+        return __str[len(leading_substring):]
+    else:
+        err_msg = "string '{}' needs to start with '{}'"
+        err_msg = err_msg.format(__str, leading_substring)
+        raise ValueError(err_msg)
+
+def occurance_range_regex(start:int, end:int=None, regex_char="\d"):
+    # Returns regex for certain occurances of character
+    pattern = ""
+    if end == None or start == end:
+        if start != 0:
+            pattern = regex_char + "{" + str(start) + "}"
+    else:
+        pattern = regex_char + "{" + str(start) + "," +\
+            str(end) + "}"
+    return pattern
+
+
+def range_regex(start:int, end:int, regex_digit="\d"):
+    start = str(start)
+    end = str(end)
+
+    # Extracts leading parts of string
+    if len(start) == len(end):
+        leading_string = common_leading_substring(start, end)
+    else:
+        # Ingnore leading string integers have differnt digits length
+        leading_string = ""
+
+    # Extracts remaing parts of start and end strings
+    start_remainig_string = extract_remaing_substring(start, leading_string)
+    end_remainig_string = extract_remaing_substring(end, leading_string)
+
+    remaining_pattern = "" # pattern for remaining digits
+    leading_digits_pattern = leading_string # matched as it is
+
+    if start_remainig_string or end_remainig_string:
+        if len(start_remainig_string) == len(end_remainig_string):
+            # Handles regex for remaining characters
+            remaining_string_length = len(start_remainig_string)
+            # Creates pattern for first digit
+            remaining_pattern = "[" + start_remainig_string[0] + "-" +\
+                end_remainig_string[0] + "]"
+            # Creates pattern for other remaining digits
+            # Its better to ignore if no other digits left
+            if remaining_string_length-1 != 0:
+                # -1 is for digit already added to remaining_pattern
+                remaining_pattern += occurance_range_regex(
+                    remaining_string_length-1, regex_char=regex_digit
+                    )
+        else:
+            remaining_pattern = "[1-9]"
+            if start_remainig_string:
+                if int(start_remainig_string) == 0:
+                    # Zero is allowed for at begining of integer
+                    # This is because that integer is allowed to be 0
+                    remaining_pattern = occurance_range_regex(
+                        len(start_remainig_string), 
+                        len(end_remainig_string),
+                        regex_digit
+                    )
+                else:
+                    # -1 is for character already added to remaining_pattern
+                    # Zero is not allowed at begining of integer
+                    remaining_pattern += occurance_range_regex(
+                        len(start_remainig_string)-1, 
+                        len(end_remainig_string)-1,
+                        regex_digit
+                    )
+            else:
+                # -1 is for character already added to remaining_pattern
+                # Zero is not allowed at begining of integer
+                # Matches exatly digits of length and they should start
+                # with zero.
+                remaining_pattern += occurance_range_regex(
+                    len(end_remainig_string)-1, regex_char=regex_digit
+                )
+
+        
+    else:
+        # Remaining parts are empty
+        pass
+
+    # leading_string should be matched extly as it is.
+    return leading_digits_pattern + remaining_pattern
+
+    
 def create_position_parts_regex(   
     start_pos:int=None, 
     end_pos:int=None, 
@@ -194,7 +295,7 @@ def create_position_parts_regex(
     if start_pos == None:
         start_pos = get_start_pos_from_kwargs(**kwargs)
     if end_pos == None:
-        end_pos = get_end_pos_from_kwargs(start_pos=start_pos, **kwargs)
+        end_pos = get_end_pos_from_kwargs(**kwargs)
 
     # Raises exception if any regarding provided argumnets
     exception = year_position_exception(start_pos, end_pos, **kwargs)
@@ -204,24 +305,21 @@ def create_position_parts_regex(
     year_capacity = analyse.get_capacity_from_kwargs(**kwargs)
     year_first_position = analyse.get_first_position_from_kwargs(**kwargs)
     max_position_length = analyse.calculate_position_length(
-        year_capacity, year_first_position
+        year_first_position, year_capacity
     )
+    print(year_capacity, year_first_position, end_pos, max_position_length)
 
+    # Calculates minum and maximul leading zeros for position part
     min_leading_zeros = max_position_length - len(str(end_pos))
     max_leading_zeros = max_position_length - len(str(start_pos))
+
     # Creates pattern for matching leading zeros
     # Matched leading zeros wont always mean position part is valid.
-    if max_leading_zeros != 0:
-        leading_zeros_pattern = "(0{" + "{},{}".format(min_leading_zeros,
-            max_leading_zeros) + "})"
-    else:
-        leading_zeros_pattern = ""
+    leading_zeros_pattern = occurance_range_regex(min_leading_zeros, 
+        max_leading_zeros, "0")
     # Creates pattern for matching position integer
-    if len(str(start_pos)) == len(str(end_pos)):
-        position_pattern = "\d{" + str(len(str(start_pos))) + "}"
-    else:
-        position_pattern = "(\d{" + str(len(str(start_pos))) + "," +\
-            str(len(str(end_pos))) + "})"
+    position_pattern = range_regex(start_pos, end_pos)
+
     # Combines the to patterns to create pattern for position part.
     return leading_zeros_pattern + position_pattern
 
@@ -238,16 +336,11 @@ def create_year_part_regex(
     exception = year_range_exception(start_year, end_year, strict)
     raise_exception(exception)
 
-    
     # Creates start parts for years to use on patterns
     start_year_part = analyse.year_to_year_part(start_year, strict)
     end_year_part = analyse.year_to_year_part(end_year, strict)
 
-    if len(start_year_part) == len(end_year_part):
-        return "(\d{" + str(len(start_year_part)) + "})"
-    else:
-        return "(\d{" + str(len(start_year_part)) + "}|" + "\d{" +\
-            str(len(end_year_part)) + "})"
+    return range_regex(int(start_year_part), int(end_year_part))
 
 def create_regex_pattern(    
     start_year:int=None, 
@@ -269,5 +362,7 @@ def create_regex_pattern(
 
 if __name__ == "__main__":
     student_number = 202264623
-    print(guess_student_number(strict=False, start_pos=10, end_pos=1000))
-    print(create_regex_pattern(strict=False, start_year=2015, end_year=20201))
+    #print(range_regex(1000, 7822))
+    print(extract_remaing_substring("nameserver", "name"))
+    print(guess_student_number(start_year=2015, end_year=2022, end_pos=20, year_capacity=400))
+    print(create_regex_pattern(start_year=2015, end_year=2022, start_pos=1, end_pos=20, year_capacity=400))
