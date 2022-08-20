@@ -11,6 +11,8 @@ import mimetypes
 import os
 import re
 
+from ulid import analyse
+
 from .import exceptions
 from . import generate
 
@@ -48,7 +50,7 @@ def _extract_text_bytes(source, content_type):
         content_type=content_type,
     )
 
-def extract_text_string(source, content_type):
+def _extract_text_string(source, content_type):
     # Extract text from string of content type
     # This interface should be added to navaly
     naval_lib = _import_navaly()
@@ -58,13 +60,13 @@ def extract_text_string(source, content_type):
         content_type=content_type,
     )
 
-def is_plain_text_file(file_path):
+def _is_plain_text_file(file_path):
     # Returns True if file path points to plain text file
     if not mimetypes.inited:
         mimetypes.init()
     return mimetypes.guess_type(file_path)[0] == "text/plain"
 
-def is_text_file(file_path):
+def _is_text_file(file_path):
     # Returns True if file path points to plain text file
     if not mimetypes.inited:
         mimetypes.init()
@@ -73,8 +75,8 @@ def is_text_file(file_path):
 def extract_text_path(path, content_type=None):
     # Extacts text from file in path
     if os.path.isfile(path):
-        if content_type == "text/plain" or is_plain_text_file(path):
-            with open(path) as fp:
+        if content_type == "text/plain" or _is_plain_text_file(path):
+            with open(path, "r") as fp:
                 return fp.read()
         else:
             naval_lib = _import_navaly()
@@ -85,16 +87,34 @@ def extract_text_path(path, content_type=None):
         err_msg = "'{}' is not valid file path".format(path)
         raise ValueError(err_msg)
 
+def filter_student_numbers(student_numbers, **kwargs):
+    # Filters iterator into allowing only expected student numbers
+    def filter_callaback(student_number):
+        return generate.student_number_allowed(
+            student_number, **kwargs
+        )
+    return filter(filter_callaback, student_numbers)
 
-def extract_student_numbers(text: str, *args, **kwargs):
+def extract_student_numbers(text: str, **kwargs):
     # Extracts student numbers from text as specified by optional
-    pattern = generate.create_regex_pattern(*args, **kwargs)
+    pattern = generate.create_regex_pattern(**kwargs)
+    print(pattern)
     matches = re.findall(pattern, text)
     if matches:
-        return ["".join(match) for match in matches]
+        student_numbers = ["".join(match) for match in matches]
+        return list(filter_student_numbers(student_numbers, **kwargs))
     else:
         return []
 
+def extract_student_numbers_file(path: str, content_type=None, **kwargs):
+    # Extracts student numbers from file in path.
+    # This function may attept to use navaly for non plain text files.
+    # Navaly can be install with 'pip install navaly'
+    file_text = extract_text_path(path, content_type)
+    return extract_student_numbers(file_text, **kwargs)
+
+
 if __name__ == "__main__":
-    text = extract_student_numbers("20237364956", start_year=2023)
-    print(text)
+    file_path = "file.pdf"
+    numbers = extract_student_numbers_file(file_path, start_year=2021)
+    print(numbers)

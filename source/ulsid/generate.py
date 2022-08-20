@@ -201,7 +201,7 @@ def extract_remaing_substring(__str:str, leading_substring:str):
         err_msg = err_msg.format(__str, leading_substring)
         raise ValueError(err_msg)
 
-def occurance_range_regex(start:int, end:int=None, regex_char="\d"):
+def occurance_range_regex(start:int, end:int=None, regex_char=r"\d"):
     # Returns regex for certain occurances of character
     pattern = ""
     if end == None or start == end:
@@ -213,7 +213,7 @@ def occurance_range_regex(start:int, end:int=None, regex_char="\d"):
     return pattern
 
 
-def range_regex(start:int, end:int, regex_digit="\d"):
+def range_regex(start:int, end:int, regex_digit=r"\d"):
     start = str(start)
     end = str(end)
 
@@ -272,8 +272,6 @@ def range_regex(start:int, end:int, regex_digit="\d"):
                 remaining_pattern += occurance_range_regex(
                     len(end_remainig_string)-1, regex_char=regex_digit
                 )
-
-        
     else:
         # Remaining parts are empty
         pass
@@ -307,7 +305,6 @@ def create_position_parts_regex(
     max_position_length = analyse.calculate_position_length(
         year_first_position, year_capacity
     )
-    print(year_capacity, year_first_position, end_pos, max_position_length)
 
     # Calculates minum and maximul leading zeros for position part
     min_leading_zeros = max_position_length - len(str(end_pos))
@@ -358,11 +355,49 @@ def create_regex_pattern(
     return years_part_pattern + positions_pattern
 
 
+def student_number_allowed(    
+    student_number:int,
+    start_year:int=None, 
+    end_year:int=None, 
+    start_pos:int=None,
+    end_pos:int=None, 
+    strict=True,
+    **kwargs):
+    # Validates student number against range of years and positions.
+    # This function is similar to analyse.student_number_valid().
+    # But it can handle generate module specific arguments like
+    # 'start_year' and 'start_pos'.
+    # analyse.student_number_valid() does not support such arguments.
 
+    # Sets optional argumets values if not provided
+    if start_pos == None:
+        start_pos = get_start_pos_from_kwargs(**kwargs)
+    if end_pos == None:
+        end_pos = get_end_pos_from_kwargs(**kwargs)
+
+    # Sets optional argumnets values if not provided
+    if start_year == None:
+        start_year = get_start_year_from_kwargs()
+    if end_year == None:
+        end_year = get_end_year_from_kwargs()
+
+    # Invalid student number is already not allowed.
+    if analyse.student_number_valid(student_number, strict, **kwargs):
+        # Extracts year and position of student number
+        year = analyse.extract_year(student_number, strict, **kwargs)
+        position = analyse.extract_position(student_number, **kwargs)
+        # Checks year and position of studedent numbers
+        year_allowed = year >= start_year and year <= end_year
+        postion_allowed = position >= start_pos and position <= end_pos
+        # Both year and position need to be allowed
+        return year_allowed and postion_allowed
+    else:
+        return False
+            
 
 if __name__ == "__main__":
     student_number = 202264623
     #print(range_regex(1000, 7822))
-    print(extract_remaing_substring("nameserver", "name"))
-    print(guess_student_number(start_year=2015, end_year=2022, end_pos=20, year_capacity=400))
-    print(create_regex_pattern(start_year=2015, end_year=2022, start_pos=1, end_pos=20, year_capacity=400))
+    print(student_number_allowed(student_number))
+    print(guess_student_number(start_year=2015, end_year=2022))
+    print(create_regex_pattern(start_year=2015, end_year=2022))

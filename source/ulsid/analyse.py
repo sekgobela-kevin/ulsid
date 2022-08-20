@@ -84,10 +84,14 @@ def year_valid(year: int, strict=True):
 
 def year_part_valid(year_part: str, strict=True):
     # Checks if year part is valid
-    if strict and len(year_part) == 2:
-        # related to year_to_year_part()
-        year_part = "19" + year_part
-    return year_valid(int(year_part), strict)
+    if year_part.isdigit():
+        if strict and len(year_part) == 2:
+            # related to year_to_year_part()
+            year_part = "19" + year_part
+        else:
+            return year_valid(int(year_part), strict)
+    else:
+        return False
 
 
 def position_valid(position: int, **kwargs):
@@ -99,7 +103,10 @@ def position_valid(position: int, **kwargs):
     
 def position_part_valid(position_part: str, **kwargs):
     # Checks if position part is valid
-    return position_valid(int(position_part), **kwargs)
+    if position_part.isdigit():
+        return position_valid(int(position_part), **kwargs)
+    else:
+        return False
     
 def position_part_to_position(position_part: str, **kwargs):
     # Convert position part to position integer
@@ -186,7 +193,7 @@ def split_student_number(student_number: int, strict=True, **kwargs):
     year_part = extract_year_part(student_number, strict)
     return year_part, position_part
 
-def student_number_valid(student_number: int, strict, **kwargs):
+def student_number_valid(student_number: int, strict=True, **kwargs):
     # Checks if student number is valid
     try:
         # If student number can be split then its valid
