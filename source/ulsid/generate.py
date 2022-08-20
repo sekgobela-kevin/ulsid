@@ -121,7 +121,11 @@ def raise_exception(exception:Exception):
 #               End for helpers functions
 ##############################################################
 
-
+def create_student_number(year:int, position:int, strict=True, **kwargs):
+    # Creates student number from year and position
+    year_part = analyse.year_to_year_part(year, strict)
+    position_part = analyse.position_to_position_part(position, **kwargs)
+    return year_part  + position_part
 
 def guess_position(start_pos:int=None, end_pos:int=None, **kwargs):
     # Guesses position to be used with student number
@@ -381,6 +385,10 @@ def student_number_allowed(
     if end_year == None:
         end_year = get_end_year_from_kwargs()
 
+    # Raises exception if any regarding argumets
+    exception = year_range_exception(start_year, end_year, strict)
+    raise_exception(exception)
+
     # Invalid student number is already not allowed.
     if analyse.student_number_valid(student_number, strict, **kwargs):
         # Extracts year and position of student number
@@ -393,11 +401,71 @@ def student_number_allowed(
         return year_allowed and postion_allowed
     else:
         return False
-            
+
+
+def next_student_number(student_number:int, strict=True, **kwargs):
+    # Returns next student number after provided one.
+    if student_number_allowed(student_number, **kwargs):
+        position = analyse.extract_position(student_number, **kwargs)
+        year = analyse.extract_year(student_number, strict, **kwargs)
+
+        # Creates new student number by incrementing position
+        try:
+            _student_number = create_student_number(year, position+1, 
+                **kwargs)
+            return _student_number
+        except exceptions.InvalidPositionError:
+            pass
+
+        # Creates new student number by incrementing year
+        try :
+            _student_number = create_student_number(year+1, 0, 
+                **kwargs)
+            return _student_number
+        except exceptions.InvalidYearError:
+            pass
+        # Next student number cannot be created.
+        # Likely this is the last student number supprted.
+    else:
+        raise exceptions.UnsupportedStudentNumber(student_number)
+        
+
+def create_student_numbers(
+    start_year:int=None, 
+    end_year:int=None, 
+    start_pos:int=None,
+    end_pos:int=None, 
+    strict=True,
+    **kwargs):
+    # Creates studnet numbers based on provided arguments
+
+    # Sets optional argumets values if not provided
+    if start_pos == None:
+        start_pos = get_start_pos_from_kwargs(**kwargs)
+    if end_pos == None:
+        end_pos = get_end_pos_from_kwargs(**kwargs)
+
+    # Sets optional argumnets values if not provided
+    if start_year == None:
+        start_year = get_start_year_from_kwargs()
+    if end_year == None:
+        end_year = get_end_year_from_kwargs()
+
+    # Raises exception if any regarding argumets
+    exception = year_range_exception(start_year, end_year, strict)
+    raise_exception(exception)
+
+    # Prepares years and positions for student numbers
+    years = range(start_year, end_year+1)
+    positions = range(start_pos, end_pos+1)
+
+    # Loops and yield student numbers
+    for year in years:
+        for position in positions:
+            yield create_student_number(year, position, **kwargs)
+
 
 if __name__ == "__main__":
-    student_number = 202264623
-    #print(range_regex(1000, 7822))
-    print(student_number_allowed(student_number))
-    print(guess_student_number(start_year=2015, end_year=2022))
-    print(create_regex_pattern(start_year=2015, end_year=2022))
+    student_number = 202399998
+    print(list(create_student_numbers(start_year=2020, year_capacity=10)))
+    
