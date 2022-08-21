@@ -1,5 +1,5 @@
 '''
-Exception classes for ulid
+Exception classes for ulsid
 
 Author: Sekgobela Kevin
 Date: August 2022
@@ -7,11 +7,11 @@ Language: Python 3
 '''
 
 
-class UlidError(Exception):
-    '''Base class for ulid exceptions'''
+class UlsidError(Exception):
+    '''Base class for ulsid exceptions'''
     pass
 
-class StudentNumberError(UlidError):
+class StudentNumberError(UlsidError):
     '''Base class for exceptions regarding student numbers'''
     def __init__(self, student_number: int) -> None:
         self.student_number = student_number
@@ -113,5 +113,5 @@ class UnsupportedPositionError(PositionError):
         return "Position {other} is not supported for student number"
 
 
-class NavalNotInstalledError(UlidError):
+class NavalNotInstalledError(UlsidError):
     pass
