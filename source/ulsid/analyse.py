@@ -88,8 +88,7 @@ def year_part_valid(year_part: str, strict=True):
         if strict and len(year_part) == 2:
             # related to year_to_year_part()
             year_part = "19" + year_part
-        else:
-            return year_valid(int(year_part), strict)
+        return year_valid(int(year_part), strict)
     else:
         return False
 
