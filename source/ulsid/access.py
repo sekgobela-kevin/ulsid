@@ -89,7 +89,7 @@ def extract_text_path(path, content_type=None):
 def filter_student_numbers(student_numbers, **kwargs):
     # Filters iterator into allowing only expected student numbers
     def filter_callaback(student_number):
-        return generate.student_number_allowed(
+        return generate.student_number_supported(
             student_number, **kwargs
         )
     return filter(filter_callaback, student_numbers)

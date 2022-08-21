@@ -359,7 +359,7 @@ def create_regex_pattern(
     return years_part_pattern + positions_pattern
 
 
-def student_number_allowed(    
+def student_number_supported(    
     student_number:int,
     start_year:int=None, 
     end_year:int=None, 
@@ -405,7 +405,7 @@ def student_number_allowed(
 
 def next_student_number(student_number:int, strict=True, **kwargs):
     # Returns next student number after provided one.
-    if student_number_allowed(student_number, **kwargs):
+    if student_number_supported(student_number, **kwargs):
         position = analyse.extract_position(student_number, **kwargs)
         year = analyse.extract_year(student_number, strict, **kwargs)
 
