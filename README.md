@@ -1,4 +1,4 @@
-# University of Limpop Student Number
+# University of Limpopo Student Number
 
 ### Description
 ULID helps in analysing, creating and accessing Univesity of Limpopo student
@@ -18,7 +18,7 @@ Student numbers of 20th centuary are supported in which year is represented
 by 2 digits(**Year 2000 bug**). That can be disabled by setting passing
 `strict=False` as argument to functions.
 
-# Install
+### Install
 ```bash
 # ulid is already taken pypi(see issue #2)
 pip install ulid
@@ -51,7 +51,7 @@ True
 1984
 >>> ulid.extract_position(202001736)
 1736
->>> ulid.extract_year(8423642)
+>>> ulid.extract_position(8423642)
 23642
 >>> ulid.split_student_number(202001736)
 ('2020', '01736')
@@ -103,6 +103,31 @@ None
 '201[5-9]0{0,4}\d{1,5}'
 >>> ulid.create_regex_pattern(start_year=2020, end_year=2023, start_pos=10000, end_pos=25000)
 '202[0-3][1-2]\d{4}'
+```
+
+#### Extact student numbers from text
+```python
+>>> text = '''
+First student - 2020736464
+second student - 8494637
+Third student - 2014736479
+Invalid student number - 2012763'''
+>>> ulid.extract_student_numbers(text)
+[2020736464, 8494637, 2014736479]
+>>> ulid.extract_student_numbers(text, start_year=2000)
+[2020736464, 2014736479]
+>>> ulid.extract_student_numbers(text, end_year=2000)
+[8494637]
+```
+
+#### Extract student numbers from file
+```python
+>>> ulid.extract_student_numbers_file("file.txt")
+# Output ignored
+>>> ulid.extract_student_numbers_file("file.pdf") # requires navaly
+# Output ignored
+>>> ulid.extract_student_numbers_file("file.docx") # requires navaly
+# Output ignored
 ```
 
 
