@@ -121,12 +121,6 @@ def raise_exception(exception:Exception):
 #               End for helpers functions
 ##############################################################
 
-def create_student_number(year:int, position:int, strict=True, **kwargs):
-    # Creates student number from year and position
-    year_part = analyse.year_to_year_part(year, strict)
-    position_part = analyse.position_to_position_part(position, **kwargs)
-    return year_part  + position_part
-
 def guess_position(start_pos:int=None, end_pos:int=None, **kwargs):
     # Guesses position to be used with student number
 
@@ -402,32 +396,90 @@ def student_number_supported(
     else:
         return False
 
-
-def next_student_number(student_number:int, strict=True, **kwargs):
-    # Returns next student number after provided one.
-    if student_number_supported(student_number, **kwargs):
-        position = analyse.extract_position(student_number, **kwargs)
-        year = analyse.extract_year(student_number, strict, **kwargs)
-
-        # Creates new student number by incrementing position
-        try:
-            _student_number = create_student_number(year, position+1, 
-                **kwargs)
-            return _student_number
-        except exceptions.InvalidPositionError:
-            pass
-
-        # Creates new student number by incrementing year
-        try :
-            _student_number = create_student_number(year+1, 0, 
-                **kwargs)
-            return _student_number
-        except exceptions.InvalidYearError:
-            pass
-        # Next student number cannot be created.
-        # Likely this is the last student number supprted.
+def create_student_number(
+    year:int, 
+    position:int, 
+    start_year:int=None, 
+    end_year:int=None, 
+    start_pos:int=None,
+    end_pos:int=None, 
+    strict=True,
+    **kwargs):
+    # Creates student number from year and position
+    year_part = analyse.year_to_year_part(year, strict)
+    position_part = analyse.position_to_position_part(position, **kwargs)
+    student_number = int(year_part  + position_part)
+    # Checks if student number is supported if not raises exception.
+    is_supported = student_number_supported(
+        student_number, 
+        start_year=start_year, 
+        end_year=end_year, 
+        start_pos=start_pos, 
+        end_pos=end_pos, 
+        strict=strict, 
+        **kwargs
+    )
+    if is_supported:
+        return student_number
     else:
+        # Student number is valid but not supported
         raise exceptions.UnsupportedStudentNumber(student_number)
+
+
+
+
+
+def next_student_number(    
+    student_number:int,
+    start_year:int=None, 
+    end_year:int=None, 
+    start_pos:int=None,
+    end_pos:int=None, 
+    strict=True,
+    same_year=False,
+    **kwargs):
+    # Returns next student number after provided one.
+    # Captures kewyords arguments into dict for reuse.
+    other_kwargs = {
+            "start_year": start_year, 
+            "end_year": end_year, 
+            "start_pos": start_pos,
+            "end_pos": end_pos, 
+            "strict": strict
+        }
+    # Extarcts year and position of student number
+    position = analyse.extract_position(student_number, **kwargs)
+    year = analyse.extract_year(student_number, strict, **kwargs)
+
+    # Creates new student number by incrementing position
+    try:
+        _student_number = create_student_number(
+            year, position+1, **other_kwargs, **kwargs
+        )
+    except exceptions.StudentNumberError:
+        if same_year:
+            # Next student number only be of same year
+            # Year is never incremented when end_pos is reached.
+            return
+    else:
+        return _student_number
+        
+
+    # Creates new student number by incrementing year
+    # Position is reset to start position.
+    try :
+        start_pos = get_start_pos_from_kwargs(**other_kwargs)
+        _student_number = create_student_number(
+            year+1, start_pos, **other_kwargs,**kwargs
+        )
+    except exceptions.StudentNumberError:
+        pass
+    else:
+        return _student_number
+    
+    # Next student number cannot be created.
+    # Likely this is the last student number supported.
+
         
 
 def create_student_numbers(
