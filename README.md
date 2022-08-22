@@ -1,8 +1,8 @@
-# University of Limpopo Student Number
+# University of Limpopo Student Numbers
 
 ### Description
-ULSID helps in analysing, creating and accessing Univesity of Limpopo student
-numbers. Its flexible, customisable and gives control on what can be 
+_ulsid_ helps in analysing, creating and accessing [University of Limpopo](https://www.ul.ac.za/) 
+student numbers using python. Its flexible, customisable and gives control on what can be 
 considered valid student number. That allows it to support even more student
 numbers than University of Limpopo already supports.
 
@@ -12,19 +12,25 @@ can be incremented to get the next student numbers.
 
 Student numbers can be acccessed from text and files with help of regular
 expressions and navaly. Using navaly, it becomes possible to extract 
-student numbers from **html**, **pdf**, **docx**, etc. Navaly is not installed with ULSID, you will need to manually install it with `pip install navaly`.
+student numbers from **html**, **pdf**, **docx**, etc. Navaly is not installed with _ulsid_, 
+you will need to manually install it with `pip install navaly`.
 
 Student numbers of 20th centuary are supported in which year is represented
-by 2 digits(**Year 2000 bug**). That can be disabled by setting passing
-`strict=False` as argument to functions.
+by 2 digits as caused by [Year 2000 problem](https://en.wikipedia.org/wiki/Year_2000_problem). 
+That can be disabled by passing `strict=False` as argument to respective functions.
 
 ### Install
+In the command-line enter:
 ```bash
-# ulsid is already taken pypi(see issue #2)
 pip install ulsid
 ```
 
 ### Usage
+#### Importing ulsid
+```python
+>>> import ulsid
+```
+
 #### Validate student number
 ```python
 >>> ulsid.student_number_valid(202001736)
@@ -33,13 +39,16 @@ True
 True
 >>> ulsid.student_number_valid(203001736)
 False
->>> ulsid.student_number_valid(203001736, strict=False, end_year=2050)
+>>> ulsid.student_number_valid(203001736, strict=False)
 True
->>> ulsid.student_number_valid(202001736, start_year=2021)
-False
 >>> ulsid.student_number_valid(202001736, year_capacity=1000)
 False
 >>> ulsid.student_number_valid(202000985, year_capacity=1000)
+True
+>>>
+>>> ulsid.student_number_supported(202001736, start_year=2022)
+False
+>>> ulsid.student_number_supported(202001736, start_year=1990)
 True
 ```
 
@@ -57,7 +66,7 @@ True
 ('2020', '01736')
 >>> ulsid.split_student_number(8423642)
 ('84', '23642')
->>> ulsid.split_student_number(202001736, strict=False, year_capacity=100)
+>>> ulsid.split_student_number(202001736, year_capacity=100)
 ('2020017', '36')
 ```
 
@@ -105,7 +114,7 @@ None
 '202[0-3][1-2]\d{4}'
 ```
 
-#### Extact student numbers from text
+#### Extract student numbers from text
 ```python
 >>> text = '''
 First student - 2020736464
@@ -150,22 +159,22 @@ end_year = current_year + 1
 # This has impact on how end part of student number is viewed.
 # Which would also influence year part of student numbers.
 start_pos = year_first_position
-end_pos_ = start_pos + year_capacity - 1
+end_pos = start_pos + year_capacity - 1
 
 # Requires year of student numbers to be between 1959 and current_year + 1.
 # Also makes and requires year part of student number be 2 characters
 # if year is less than year 2000(Year 2000 bug).
 # Being True allows support for 20th centuary student numbers as caused
-# 'Year 2000 bug' or 'Year 2000 problem'.
-# Being True allows student numbers to be UL complient.
+# by 'Year 2000 bug' or 'Year 2000 problem'.
+# Being True allows student numbers to be UL compliant.
 # Set it to False to break those rules.
 strict = True
 ```
 > Not all functions accept all of above arguments.  
 
 ### Note
-* ULSID is not in way any associated with [University of Limpopo]().
-* ULSID is just a library to help with analysing, generating and accessing
+* _ulsid_ is not any way associated with [University of Limpopo](https://www.ul.ac.za/).
+* _ulsid_ is just a library to help with analysing, generating and accessing
 its student numbers.
-* ULSID was not created based on any written standard but based on small
+* _ulsid_ was not created based on any written standard but based on small
 samples of student numbers and opinions of its author.
