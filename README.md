@@ -11,9 +11,10 @@ numbers and regular expression pattern for matching them. Student numbers
 can be incremented to get the next student numbers.
 
 Student numbers can be acccessed from text and files with help of regular
-expressions and navaly. Using navaly, it becomes possible to extract 
-student numbers from **html**, **pdf**, **docx**, etc. Navaly is not installed with _ulsid_, 
-you will need to manually install it with `pip install navaly`.
+expressions and [navaly](https://github.com/sekgobela-kevin/naval). Using navaly, 
+it becomes possible to extract  student numbers from **html**, **pdf**, **docx**, etc. 
+Navaly is not installed with _ulsid_, you will need to manually install it with 
+`pip install navaly`.
 
 Student numbers of 20th centuary are supported in which year is represented
 by 2 digits as caused by [Year 2000 problem](https://en.wikipedia.org/wiki/Year_2000_problem). 
@@ -43,7 +44,7 @@ False
 True
 >>> ulsid.student_number_valid(202001736, year_capacity=1000)
 False
->>> ulsid.student_number_valid(202000985, year_capacity=1000)
+>>> ulsid.student_number_valid(2020985, year_capacity=1000)
 True
 >>>
 >>> ulsid.student_number_supported(202001736, start_year=2022)
