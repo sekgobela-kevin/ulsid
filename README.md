@@ -78,7 +78,7 @@ True
 200380352
 >>> ulsid.create_student_number(year=2014, position=1607)
 201401607
->>> ulsid.create_student_number(year=2014, position=1607, strict=False, year_capacity=1000000)
+>>> ulsid.create_student_number(year=2014, position=1607, year_capacity=1000000)
 2014001607
 >>> list(ulsid.create_student_numbers(start_year=2020))[:2]
 [202000000, 202000001]
@@ -96,6 +96,8 @@ True
 202001738
 >>> ulsid.next_student_number(202099999)
 202100000
+>>> ulsid.next_student_number(202099999, same_year=True)
+None
 >>> ulsid.next_student_number(202399999, end_year=2023)
 None
 >>> ulsid.next_student_number(202399999, end_year=2023, strict=False)
@@ -114,17 +116,28 @@ None
 '202[0-3][1-2]\d{4}'
 ```
 
+#### Filter student numbers
+```python
+>>> student_numbers = [23, 2005, 202224745, 200803056, 9400781]
+>>> list(ulsid.filter_student_numbers(student_numbers))
+[202224745, 200803056, 9400781]
+>>> list(ulsid.filter_student_numbers(student_numbers, start_year=2000))
+[202224745, 200803056]
+>>> list(ulsid.filter_student_numbers(student_numbers, end_year=2000))
+[9400781]
+```
+
 #### Extract student numbers from text
 ```python
 >>> text = '''
-First student - 2020736464
+First student - 202073646
 second student - 8494637
-Third student - 2014736479
+Third student - 201473647
 Invalid student number - 2012763'''
 >>> ulsid.extract_student_numbers(text)
-[2020736464, 8494637, 2014736479]
+[202073646, 8494637, 201473647]
 >>> ulsid.extract_student_numbers(text, start_year=2000)
-[2020736464, 2014736479]
+[202073646, 201473647]
 >>> ulsid.extract_student_numbers(text, end_year=2000)
 [8494637]
 ```
@@ -172,7 +185,7 @@ strict = True
 ```
 > Not all functions accept all of above arguments.  
 
-### Note
+### Notice
 * _ulsid_ is not any way associated with [University of Limpopo](https://www.ul.ac.za/).
 * _ulsid_ is just a library to help with analysing, generating and accessing
 its student numbers.
